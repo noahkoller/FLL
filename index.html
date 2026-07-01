@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>First Lego League — FLL</title>
+<style>
+:root{
+  --bg:#f5f7fb;
+  --bg2:#eef2f9;
+  --card:#ffffff;
+  --ink:#0b1a33;
+  --ink-soft:#4a5876;
+  --line:#e3e9f3;
+  --blue:#0a63d6;
+  --blue-deep:#083b87;
+  --blue-soft:#e8f1ff;
+
+  /* Zonen */
+  --cl:#0a63d6;          /* Champions League */
+  --cl-bg:#e7f0ff;
+  --po:#5ea8ff;          /* Playoff CL (hellblau) */
+  --po-bg:#eaf4ff;
+  --rel-play:#ff8a8a;    /* Relegation Playoff (hellrot) */
+  --rel-play-bg:#fff0f0;
+  --rel:#e23b3b;         /* Abstieg (rot) */
+  --rel-bg:#ffe9e9;
+
+  --shadow:0 1px 2px rgba(11,26,51,.04), 0 8px 24px rgba(11,26,51,.06);
+  --shadow-lg:0 4px 12px rgba(11,26,51,.08), 0 20px 48px rgba(11,26,51,.10);
+  --radius:18px;
+  --radius-sm:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+  background:
+    radial-gradient(1200px 600px at 80% -10%, #e9f1ff 0%, rgba(233,241,255,0) 55%),
+    radial-gradient(900px 500px at -10% 0%, #eef3fc 0%, rgba(238,243,252,0) 50%),
+    var(--bg);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  line-height:1.45;
+  min-height:100vh;
+}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px 80px}
+
+/* ---------- Header ---------- */
+header.top{
+  position:sticky;top:0;z-index:50;
+  backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  background:rgba(245,247,251,.72);
+  border-bottom:1px solid var(--line);
+}
+.top-inner{max-width:1080px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:14px}
+.crest{
+  width:42px;height:42px;border-radius:12px;flex:none;
+  background:linear-gradient(150deg,var(--blue) 0%,var(--blue-deep) 100%);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-weight:800;letter-spacing:.5px;font-size:15px;
+  box-shadow:0 4px 12px rgba(10,99,214,.35);
+}
+.brand h1{font-size:19px;font-weight:800;letter-spacing:-.3px;line-height:1.05}
+.brand p{font-size:12.5px;color:var(--ink-soft);font-weight:500}
+
+/* ---------- Tabs ---------- */
+nav.tabs{
+  display:flex;gap:6px;margin:22px 0 26px;padding:5px;
+  background:var(--bg2);border:1px solid var(--line);border-radius:14px;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs button{
+  flex:1;min-width:max-content;border:none;background:transparent;cursor:pointer;
+  padding:9px 16px;border-radius:10px;font-size:14px;font-weight:600;color:var(--ink-soft);
+  font-family:inherit;white-space:nowrap;transition:all .2s ease;letter-spacing:-.2px;
+}
+nav.tabs button.active{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+nav.tabs button:hover:not(.active){color:var(--ink)}
+
+.panel{display:none;animation:fade .35s ease}
+.panel.show{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+h2.section{font-size:22px;font-weight:800;letter-spacing:-.5px;margin-bottom:4px}
+.sub{color:var(--ink-soft);font-size:13.5px;margin-bottom:20px}
+
+/* ---------- Card ---------- */
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);overflow:hidden;
+}
+
+/* ---------- Tabelle ---------- */
+.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table.standings{width:100%;border-collapse:collapse;min-width:640px}
+table.standings thead th{
+  font-size:11px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.6px;
+  padding:14px 10px;text-align:center;border-bottom:1px solid var(--line);background:var(--bg2);
+  position:sticky;top:0;
+}
+table.standings thead th.left{text-align:left;padding-left:18px}
+table.standings tbody td{padding:11px 10px;text-align:center;border-bottom:1px solid var(--line);font-size:14px;font-variant-numeric:tabular-nums}
+table.standings tbody tr:last-child td{border-bottom:none}
+.team-cell{display:flex;align-items:center;gap:11px;text-align:left}
+.team-cell img{width:30px;height:30px;object-fit:contain;flex:none;border-radius:7px}
+.team-cell .nm{font-weight:600;letter-spacing:-.2px;line-height:1.15}
+.team-cell .ab{font-size:11px;color:var(--ink-soft);font-weight:600;letter-spacing:.4px}
+.pos{font-weight:700;width:34px}
+.pts{font-weight:800;color:var(--ink)}
+.gd-pos{color:#1c8c4a}.gd-neg{color:#d4433a}
+
+/* Zonen-Marker (linker Balken) */
+td.pos{position:relative}
+tr.z-cl td.pos::before,tr.z-po td.pos::before,tr.z-relplay td.pos::before,tr.z-rel td.pos::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:0 3px 3px 0;
+}
+tr.z-cl td.pos::before{background:var(--cl)}
+tr.z-po td.pos::before{background:var(--po)}
+tr.z-relplay td.pos::before{background:var(--rel-play)}
+tr.z-rel td.pos::before{background:var(--rel)}
+tr.z-cl{background:var(--cl-bg)}
+tr.z-po{background:var(--po-bg)}
+tr.z-relplay{background:var(--rel-play-bg)}
+tr.z-rel{background:var(--rel-bg)}
+
+/* Legende */
+.legend{display:flex;flex-wrap:wrap;gap:16px 22px;padding:16px 18px;background:var(--bg2);border-top:1px solid var(--line)}
+.legend .item{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-soft);font-weight:600}
+.legend .dot{width:12px;height:12px;border-radius:4px;flex:none}
+
+/* ---------- Spielplan ---------- */
+.round-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.round-nav .rlabel{
+  flex:1;text-align:center;font-weight:800;font-size:16px;letter-spacing:-.3px;color:var(--ink);
+  line-height:1.15;
+}
+.round-nav .rlabel .rsub{display:block;font-size:11.5px;font-weight:600;color:var(--ink-soft);letter-spacing:0;margin-top:1px}
+.iconbtn{
+  border:1px solid var(--line);background:var(--card);border-radius:10px;width:40px;height:40px;flex:none;
+  cursor:pointer;font-size:18px;color:var(--ink);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;
+  transition:all .15s;
+}
+.iconbtn:hover:not(:disabled){background:var(--blue-soft);border-color:var(--blue)}
+.iconbtn:active:not(:disabled){transform:scale(.95)}
+.iconbtn:disabled{opacity:.35;cursor:default;box-shadow:none}
+
+.match{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.match:last-child{border-bottom:none}
+.match .side{display:flex;align-items:center;gap:9px;flex:1;min-width:0}
+.match .side.home{justify-content:flex-end;text-align:right}
+.match .side.away{justify-content:flex-start}
+.match .side img{width:26px;height:26px;object-fit:contain;flex:none;border-radius:6px}
+.match .side .lab{font-weight:600;font-size:13.5px;letter-spacing:-.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.match .score{display:flex;align-items:center;gap:6px;flex:none}
+.match .score input{
+  width:44px;height:38px;text-align:center;font-family:inherit;font-size:16px;font-weight:700;
+  border:1px solid var(--line);border-radius:10px;background:var(--bg2);color:var(--ink);
+  font-variant-numeric:tabular-nums;transition:all .15s;
+}
+.match .score input:focus{outline:none;border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px var(--blue-soft)}
+.match .score .colon{color:var(--ink-soft);font-weight:700}
+.abbr-only .side .lab{display:none}
+
+.done-tag{font-size:10px;font-weight:700;color:#1c8c4a;background:#e6f6ec;padding:2px 7px;border-radius:20px;letter-spacing:.4px}
+
+/* ---------- Playoffs ---------- */
+.po-block{padding:20px}
+.po-block h3{font-size:15px;font-weight:800;letter-spacing:-.2px;margin-bottom:4px}
+.po-block .hint{font-size:12.5px;color:var(--ink-soft);margin-bottom:16px}
+.leg-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
+.leg-row:last-of-type{border-bottom:none}
+.leg-tag{font-size:11px;font-weight:700;color:var(--ink-soft);width:74px;flex:none;letter-spacing:.3px}
+.agg{margin-top:14px;padding:14px 16px;background:var(--blue-soft);border-radius:12px;font-size:13.5px;font-weight:600;color:var(--blue-deep)}
+.agg strong{color:var(--blue-deep)}
+.picker{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.picker label{font-size:12px;font-weight:700;color:var(--ink-soft);letter-spacing:.3px}
+.picker select{font-family:inherit;font-size:14px;font-weight:600;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink)}
+
+/* ---------- Torschützen ---------- */
+.scorer-form{display:flex;flex-wrap:wrap;gap:10px;padding:18px;border-bottom:1px solid var(--line);align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:5px}
+.field.grow{flex:1;min-width:150px}
+.field label{font-size:11px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.5px}
+.field input,.field select{
+  font-family:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;
+  background:var(--bg2);color:var(--ink);font-weight:500;
+}
+.field input:focus,.field select:focus{outline:none;border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px var(--blue-soft)}
+.btn{
+  font-family:inherit;font-size:14px;font-weight:700;padding:11px 20px;border:none;border-radius:10px;cursor:pointer;
+  background:linear-gradient(150deg,var(--blue) 0%,var(--blue-deep) 100%);color:#fff;
+  box-shadow:0 4px 12px rgba(10,99,214,.3);transition:all .15s;letter-spacing:-.1px;
+}
+.btn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(10,99,214,.4)}
+.btn:active{transform:translateY(0)}
+.btn.ghost{background:none;color:var(--ink-soft);box-shadow:none;border:1px solid var(--line)}
+.btn.ghost:hover{background:var(--bg2);color:var(--ink);transform:none;box-shadow:none}
+
+.scorer-row{display:flex;align-items:center;gap:13px;padding:11px 18px;border-bottom:1px solid var(--line)}
+.scorer-row:last-child{border-bottom:none}
+.scorer-rank{font-weight:800;width:26px;color:var(--ink-soft);font-variant-numeric:tabular-nums;text-align:center}
+.scorer-rank.top{color:var(--blue)}
+.scorer-info{flex:1;min-width:0}
+.scorer-info .pn{font-weight:600;letter-spacing:-.2px}
+.scorer-info .pt{font-size:12px;color:var(--ink-soft);display:flex;align-items:center;gap:6px}
+.scorer-info .pt img{width:16px;height:16px;object-fit:contain}
+.goals-badge{font-weight:800;font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:4px}
+.goals-badge .g{font-size:11px;color:var(--ink-soft);font-weight:600}
+.del{border:none;background:none;cursor:pointer;color:#c9ccd6;font-size:17px;padding:4px;transition:color .15s}
+.del:hover{color:var(--rel)}
+.empty{padding:44px 18px;text-align:center;color:var(--ink-soft);font-size:13.5px}
+.empty .big{font-size:30px;margin-bottom:8px;opacity:.5}
+
+/* Toolbar */
+.toolbar{display:flex;justify-content:flex-end;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.mini{font-family:inherit;font-size:12.5px;font-weight:600;padding:8px 14px;border:1px solid var(--line);background:var(--card);border-radius:9px;cursor:pointer;color:var(--ink-soft);box-shadow:var(--shadow);transition:all .15s}
+.mini:hover{color:var(--ink);border-color:var(--blue);background:var(--blue-soft)}
+
+/* ---------- Play-Button ---------- */
+.playbtn{
+  flex:none;width:34px;height:34px;border-radius:10px;border:none;cursor:pointer;
+  background:linear-gradient(150deg,var(--blue) 0%,var(--blue-deep) 100%);color:#fff;
+  font-size:12px;display:flex;align-items:center;justify-content:center;margin-left:6px;
+  box-shadow:0 3px 8px rgba(10,99,214,.3);transition:all .15s;
+}
+.playbtn:hover{transform:translateY(-1px) scale(1.05);box-shadow:0 5px 12px rgba(10,99,214,.45)}
+.playbtn:active{transform:scale(.95)}
+
+/* ---------- Simulieren-Button ---------- */
+.simbtn{
+  flex:none;width:34px;height:34px;border-radius:10px;cursor:pointer;
+  border:1px solid var(--line);background:var(--card);color:var(--blue);
+  font-size:16px;display:flex;align-items:center;justify-content:center;margin-left:6px;
+  box-shadow:var(--shadow);transition:all .15s;
+}
+.simbtn:hover{background:var(--blue-soft);border-color:var(--blue);transform:translateY(-1px)}
+.simbtn:active{transform:scale(.95)}
+
+/* ---------- Playoff-Banner im Spielplan ---------- */
+.po-banner{
+  padding:12px 16px;background:var(--blue-soft);border-bottom:1px solid var(--line);
+  font-size:12.5px;font-weight:600;color:var(--blue-deep);line-height:1.4;
+}
+.ph-logo{
+  width:26px;height:26px;flex:none;border-radius:6px;background:var(--bg2);border:1px dashed var(--line);
+  display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:var(--ink-soft);letter-spacing:.3px;
+}
+.pnum{font-size:11px;font-weight:700;color:var(--ink-soft)}
+
+/* ---------- Game Overlay ---------- */
+.game-overlay{
+  position:fixed;inset:0;z-index:100;display:none;
+  background:rgba(11,26,51,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  align-items:center;justify-content:center;padding:16px;
+}
+.game-overlay.show{display:flex;animation:fade .25s ease}
+.game-modal{
+  background:var(--card);border-radius:22px;box-shadow:var(--shadow-lg);
+  width:100%;max-width:520px;overflow:hidden;display:flex;flex-direction:column;max-height:94vh;
+}
+.game-head{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:14px 18px;border-bottom:1px solid var(--line);background:var(--bg2);
+}
+.game-head .gh-team{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13.5px;letter-spacing:-.2px}
+.game-head .gh-team img{width:24px;height:24px;object-fit:contain}
+.game-head .gh-score{
+  font-weight:800;font-size:20px;font-variant-numeric:tabular-nums;
+  background:var(--card);border:1px solid var(--line);border-radius:10px;padding:4px 14px;min-width:64px;text-align:center;
+}
+.game-close{border:none;background:none;font-size:22px;color:var(--ink-soft);cursor:pointer;line-height:1;padding:2px 6px}
+.game-close:hover{color:var(--ink)}
+
+/* ---------- Team-Auswahl vor dem Spiel ---------- */
+.team-select{position:relative;padding:28px 24px 26px;display:none}
+.game-modal.choosing .team-select{display:block}
+.game-modal.choosing .game-view{display:none}
+.team-select .game-close{position:absolute;top:14px;right:16px}
+.ts-title{font-size:19px;font-weight:800;letter-spacing:-.3px;text-align:center;margin-bottom:6px}
+.ts-sub{font-size:13px;color:var(--ink-soft);text-align:center;margin-bottom:22px;line-height:1.4}
+.ts-options{display:flex;gap:14px}
+.ts-card{
+  flex:1;border:1.5px solid var(--line);background:var(--card);border-radius:16px;padding:20px 14px;
+  cursor:pointer;text-align:center;transition:all .18s;display:flex;flex-direction:column;align-items:center;gap:10px;
+  font-family:inherit;
+}
+.ts-card:hover{border-color:var(--blue);background:var(--blue-soft);transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.ts-card:active{transform:translateY(0)}
+.ts-card img{width:56px;height:56px;object-fit:contain}
+.ts-card .ts-ph{width:56px;height:56px;border-radius:12px;background:var(--bg2);border:1px dashed var(--line);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--ink-soft);font-size:13px}
+.ts-card .ts-name{font-weight:700;font-size:14px;letter-spacing:-.2px;line-height:1.2}
+.ts-card .ts-role{font-size:11px;font-weight:600;color:var(--ink-soft);letter-spacing:.3px}
+.ts-vs{display:flex;align-items:center;font-weight:800;color:var(--ink-soft);font-size:13px}
+
+.pitch-wrap{padding:14px;background:linear-gradient(160deg,#0d7a3a 0%,#0a6330 100%)}
+canvas#pitch{display:block;width:100%;height:auto;border-radius:14px;touch-action:none;background:#0d7a3a}
+
+.game-foot{padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid var(--line);flex-wrap:wrap}
+.game-timer{font-weight:800;font-size:15px;font-variant-numeric:tabular-nums;color:var(--ink)}
+.game-hint{font-size:11.5px;color:var(--ink-soft);flex:1;min-width:120px}
+.game-actions{display:flex;gap:8px}
+.game-msg{
+  padding:12px 18px;text-align:center;font-weight:700;font-size:14px;color:var(--blue-deep);
+  background:var(--blue-soft);border-top:1px solid var(--line);display:none;
+}
+.game-msg.show{display:block}
+.applybtn{font-family:inherit;font-size:13px;font-weight:700;padding:9px 16px;border:none;border-radius:9px;cursor:pointer;background:linear-gradient(150deg,var(--blue),var(--blue-deep));color:#fff;box-shadow:0 3px 8px rgba(10,99,214,.3)}
+.applybtn:hover{transform:translateY(-1px)}
+.replaybtn{font-family:inherit;font-size:13px;font-weight:600;padding:9px 16px;border:1px solid var(--line);border-radius:9px;cursor:pointer;background:var(--card);color:var(--ink-soft)}
+.replaybtn:hover{background:var(--bg2);color:var(--ink)}
+
+footer{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:44px;opacity:.8}
+
+@media (max-width:600px){
+  .wrap{padding:0 14px 60px}
+  .top-inner{padding:12px 14px}
+  h2.section{font-size:20px}
+  .match{gap:6px;padding:11px 12px}
+  .match .side .lab{font-size:12px}
+  .team-cell img{width:26px;height:26px}
+  .scorer-form{gap:8px}
+}
+@media (max-width:440px){
+  .match .side .lab{display:none}      /* nur Logos, damit Score+Button passen */
+  .match .score input{width:40px;height:36px;font-size:15px}
+  .playbtn{width:32px;height:32px}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="crest">FLL</div>
+    <div class="brand">
+      <h1>First Lego League</h1>
+      <p>Saison 2025/26 · 20 Teams</p>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="tabs" id="tabs">
+    <button data-tab="table" class="active">Tabelle</button>
+    <button data-tab="fixtures">Spielplan</button>
+    <button data-tab="playoffs">Playoffs</button>
+    <button data-tab="scorers">Torschützen</button>
+  </nav>
+
+  <!-- TABELLE -->
+  <section class="panel show" id="tab-table">
+    <h2 class="section">Tabelle</h2>
+    <p class="sub">Automatisch berechnet aus den Ergebnissen im Spielplan.</p>
+    <div class="toolbar">
+      <button class="mini" id="resetResults">Ergebnisse zurücksetzen</button>
+    </div>
+    <div class="card">
+      <div class="table-scroll">
+        <table class="standings">
+          <thead>
+            <tr>
+              <th class="left">#</th>
+              <th class="left" style="text-align:left">Team</th>
+              <th>Sp</th><th>S</th><th>U</th><th>N</th>
+              <th>Tore</th><th>Diff</th><th>Pkt</th>
+            </tr>
+          </thead>
+          <tbody id="standingsBody"></tbody>
+        </table>
+      </div>
+      <div class="legend">
+        <div class="item"><span class="dot" style="background:var(--cl)"></span>Champions League (1–5)</div>
+        <div class="item"><span class="dot" style="background:var(--po)"></span>CL-Playoff (6–7)</div>
+        <div class="item"><span class="dot" style="background:var(--rel-play)"></span>Abstiegs-Playoff (18)</div>
+        <div class="item"><span class="dot" style="background:var(--rel)"></span>Abstieg (19–20)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SPIELPLAN -->
+  <section class="panel" id="tab-fixtures">
+    <h2 class="section">Spielplan</h2>
+    <p class="sub">Trage die Ergebnisse ein — die Tabelle aktualisiert sich sofort.</p>
+    <div class="round-nav">
+      <button class="iconbtn" id="prevRound" title="Vorheriger Spieltag">‹</button>
+      <div class="rlabel" id="roundLabel"></div>
+      <button class="iconbtn" id="nextRound" title="Nächster Spieltag">›</button>
+    </div>
+    <div class="toolbar" style="margin-top:-6px">
+      <button class="mini" id="simRound">⚄ Ganzen Spieltag simulieren</button>
+    </div>
+    <div class="card" id="matchList"></div>
+  </section>
+
+  <!-- PLAYOFFS -->
+  <section class="panel" id="tab-playoffs">
+    <h2 class="section">Playoffs</h2>
+    <p class="sub">Hin- und Rückspiel. Gesamtsieger wird automatisch ermittelt.</p>
+
+    <div class="card" style="margin-bottom:18px">
+      <div class="po-block">
+        <h3>CL-Playoff · Platz 6 vs. Platz 7</h3>
+        <p class="hint">Der Sieger zieht in die Champions League ein.</p>
+        <div id="clPlayoff"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="po-block">
+        <h3>Abstiegs-Playoff · 18. FLL vs. 3. der 2. Liga</h3>
+        <p class="hint">Der Gegner aus der 2. Liga ist frei wählbar.</p>
+        <div class="picker">
+          <label>Gegner (3. der 2. Liga)</label>
+          <input id="relOpponent" placeholder="z. B. FC Beispielstadt" />
+        </div>
+        <div id="relPlayoff"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TORSCHÜTZEN -->
+  <section class="panel" id="tab-scorers">
+    <h2 class="section">Torschützenliste</h2>
+    <p class="sub">Automatisch aus allen Ergebnissen — Liga und Playoffs, simuliert wie selbst gespielt.</p>
+    <div class="card">
+      <div id="scorerList"></div>
+    </div>
+  </section>
+
+  <footer>First Lego League · Deine fiktive Liga</footer>
+</div>
+
+<!-- MINI-GAME OVERLAY -->
+<div class="game-overlay" id="gameOverlay">
+  <div class="game-modal">
+    <!-- Team-Auswahl vor dem Spiel -->
+    <div class="team-select" id="teamSelect">
+      <button class="game-close" id="selClose" title="Schliessen">✕</button>
+      <h3 class="ts-title">Welches Team spielst du?</h3>
+      <p class="ts-sub">Das gewählte Team steuerst du selbst, das andere übernimmt der Computer.</p>
+      <div class="ts-options" id="tsOptions"></div>
+    </div>
+    <!-- Spielansicht -->
+    <div class="game-view" id="gameView">
+      <div class="game-head">
+        <div class="gh-team" id="ghHome"></div>
+        <div class="gh-score" id="ghScore">0 : 0</div>
+        <div class="gh-team" id="ghAway"></div>
+        <button class="game-close" id="gameClose" title="Schliessen">✕</button>
+      </div>
+      <div class="pitch-wrap">
+        <canvas id="pitch" width="480" height="600"></canvas>
+      </div>
+      <div class="game-msg" id="gameMsg"></div>
+      <div class="game-foot">
+        <span class="game-timer" id="gameTimer">1:30</span>
+        <span class="game-hint">Ziehe/tippe, um deinen aktiven Spieler zu bewegen und den Ball ins gegnerische Tor zu schiessen.</span>
+        <div class="game-actions">
+          <button class="replaybtn" id="gameReplay">Neu</button>
+          <button class="applybtn" id="gameApply">Ergebnis übernehmen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   TEAMS
+============================================================ */
+const TEAMS = [
+  {ab:"FLC",  name:"FC Lego City"},
+  {ab:"VAT",  name:"Valleytown"},
+  {ab:"BLC",  name:"Borussia Lego City"},
+  {ab:"SPF",  name:"Springfield FC"},
+  {ab:"FFS",  name:"Fussballfreunde Springfield"},
+  {ab:"NMC",  name:"New Melburg City"},
+  {ab:"GSF",  name:"Golden State FC"},
+  {ab:"RBB",  name:"Red Bull Bordertown"},
+  {ab:"KEY",  name:"Key East"},
+  {ab:"SOU",  name:"South City FC"},
+  {ab:"NOR",  name:"North City"},
+  {ab:"WTU",  name:"West Town United"},
+  {ab:"UVAT", name:"Union Valleytown"},
+  {ab:"MID",  name:"Midtown United"},
+  {ab:"LNI",  name:"Little Ninjago"},
+  {ab:"PLT",  name:"Pleasantville"},
+  {ab:"NHT",  name:"Northampton"},
+  {ab:"FHV",  name:"FC Hill Valley"},
+  {ab:"FST",  name:"FC Smalltown"},
+  {ab:"FCC",  name:"FC Churchtown"},
+];
+const T = Object.fromEntries(TEAMS.map(t=>[t.ab,t]));
+const logo = ab => `logos/${ab}.png`;
+
+/* ============================================================
+   KADER — je 3 Spieler pro Team: [Name, Trikotnummer]
+============================================================ */
+const ROSTERS = {
+  FLC: [["Chase McCain",7],["Vini El Negro",10],["Len McLen",4]],
+  VAT: [["Charlie McCain",11],["Antonio Griesgram",8],["Rodrigo De Paul",5]],
+  NMC: [["Örling Legolaand",9],["Mill Foden",47],["Bernardo",20]],
+  SPF: [["Mo Salat",11],["Van Dick",4],["Nunetsch",14]],
+  BLC: [["Marco McBrick",9],["Tyler Stone",6],["Hiro Tanaka",17]],
+  FFS: [["Danny McField",10],["Oliver Reed",8],["Diego Morales",7]],
+  GSF: [["Jayden Gold",9],["Ryan McLeod",11],["Kwang-min Seo",14]],
+  RBB: [["Lucas McHorn",7],["Ethan Wilder",10],["Mateo Vargas",4]],
+  KEY: [["Sunny McShore",11],["Aaron Beach",9],["Kenji Sato",6]],
+  SOU: [["Marcus McSouth",10],["Noah Kingsley",8],["Pablo Herrera",5]],
+  NOR: [["Falk McSky",7],["Connor Frost",9],["Wei Zhang",16]],
+  WTU: [["Isaac McWest",9],["Liam Cross",10],["Andrés Ruiz",7]],
+  UVAT:[["Bruno McBear",8],["Cody Flint",11],["Takeshi Mori",4]],
+  MID: [["Harvey McMid",10],["Owen Blake",9],["Santiago Cruz",6]],
+  LNI: [["Kai McNinja",7],["Logan Swift",11],["Jae-won Kim",9]],
+  PLT: [["Freddie McPleasant",9],["George Vale",8],["Carlos Reyes",10]],
+  NHT: [["Sam McHampton",10],["Jack Warren",7],["Riku Nakamura",5]],
+  FHV: [["Marty McHill",8],["Doc Brown",88],["Elias Ford",9]],
+  FST: [["Toby McSmall",9],["Nathan Poole",10],["Javier Luna",7]],
+  FCC: [["Archie McChurch",10],["Dexter Bell",9],["Min-jun Park",6]],
+};
+
+/* ============================================================
+   TEAM-STÄRKE — steuert Simulation & Gegner-Schwierigkeit
+   3 = gut, 2 = mittel, 1 = underdog
+============================================================ */
+const STRENGTH = {
+  FLC:3, BLC:3, GSF:3, VAT:3, SPF:3, NMC:3,           // gute Teams
+  RBB:2, FFS:2, NOR:2, SOU:2, UVAT:2, WTU:2, LNI:2, KEY:2, // mittlere Teams
+  MID:1, PLT:1, NHT:1, FHV:1, FST:1, FCC:1,           // underdogs
+  __L2__:2,                                            // 3. der 2. Liga (etwa gleichwertig zum 18.)
+};
+const strengthOf = ab => STRENGTH[ab] || 2;
+
+/* ============================================================
+   STORAGE
+============================================================ */
+const LS = {
+  results:"fll_results_v1",
+  po:"fll_playoffs_v1"
+};
+const load = (k,def)=>{ try{const v=localStorage.getItem(k);return v?JSON.parse(v):def;}catch(e){return def;} };
+const save = (k,v)=>{ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} };
+
+let results = load(LS.results,{});     // key "R{round}-{i}" -> {h,a}
+let poData  = load(LS.po,{cl:{},rel:{},relOpp:""});
+
+/* ============================================================
+   DETERMINISTISCHER RNG (für stabile Torschützen-Zuordnung)
+   Gleiches Ergebnis -> gleiche Torschützen. Ändert sich nur,
+   wenn ein Resultat geändert wird.
+============================================================ */
+function hashStr(s){
+  let h=2166136261>>>0;
+  for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619)>>>0; }
+  return h>>>0;
+}
+function mulberry32(seed){
+  let a=seed>>>0;
+  return function(){
+    a|=0; a=(a+0x6D2B79F5)|0;
+    let t=Math.imul(a^(a>>>15),1|a);
+    t=(t+Math.imul(t^(t>>>7),61|t))^t;
+    return ((t^(t>>>14))>>>0)/4294967296;
+  };
+}
+// Verteilt `goals` Tore deterministisch auf die 3 Kaderspieler eines Teams.
+// Spieler mit "offensiverer" Nummer bekommen etwas mehr Gewicht.
+function assignGoals(teamAb, goals, seedKey){
+  const roster=ROSTERS[teamAb]||[];
+  if(!roster.length||goals<=0) return [];
+  // Gewicht: Stürmernummern (7,9,10,11,20,47…) etwas höher, Abwehr (4,5,6) niedriger
+  const weightFor=num=>{
+    if([9,10,11,7,20,47,88,17,14].includes(num)) return 3;
+    if([8,16].includes(num)) return 2;
+    return 1; // 4,5,6 …
+  };
+  const weights=roster.map(p=>weightFor(p[1]));
+  const total=weights.reduce((a,b)=>a+b,0);
+  const rnd=mulberry32(hashStr(seedKey));
+  const out=roster.map(p=>({name:p[0],num:p[1],team:teamAb,goals:0}));
+  for(let g=0;g<goals;g++){
+    let r=rnd()*total, idx=0;
+    for(let i=0;i<weights.length;i++){ r-=weights[i]; if(r<=0){ idx=i; break; } }
+    out[idx].goals++;
+  }
+  return out.filter(x=>x.goals>0);
+}
+
+/* ============================================================
+   SPIELPLAN (Round-Robin, Hin- & Rückrunde) — Berger-Tabelle
+============================================================ */
+function buildSchedule(teams){
+  const list=[...teams];
+  if(list.length%2!==0) list.push(null);
+  const n=list.length, half=n/2, roundsFirst=n-1, rounds=[];
+  let arr=[...list];
+  for(let r=0;r<roundsFirst;r++){
+    const games=[];
+    for(let i=0;i<half;i++){
+      const home=arr[i], away=arr[n-1-i];
+      if(home&&away){ games.push(r%2===0?[home,away]:[away,home]); }
+    }
+    rounds.push(games);
+    arr=[arr[0],...arr.slice(-1),...arr.slice(1,-1)]; // rotate
+  }
+  // Rückrunde (Heimrecht getauscht)
+  const second=rounds.map(g=>g.map(([h,a])=>[a,h]));
+  return [...rounds,...second];
+}
+const SCHEDULE = buildSchedule(TEAMS.map(t=>t.ab));
+const TOTAL_ROUNDS = SCHEDULE.length;         // 38 Liga-Spieltage
+const PO_LEG1 = TOTAL_ROUNDS;                 // Spieltag-Index 38: Playoff-Hinspiel
+const PO_LEG2 = TOTAL_ROUNDS+1;               // Spieltag-Index 39: Playoff-Rückspiel
+const GRAND_TOTAL_ROUNDS = TOTAL_ROUNDS+2;    // inkl. Playoffs
+let currentRound = 0;
+
+// Liefert die Paarungen [home,away] eines (auch Playoff-)Spieltags.
+// Playoff-Paarungen ergeben sich dynamisch aus der aktuellen Liga-Tabelle.
+function getRoundGames(ri){
+  if(ri<TOTAL_ROUNDS) return SCHEDULE[ri];
+  const st=computeStandings();
+  const p6=st[5]?st[5].ab:null, p7=st[6]?st[6].ab:null;
+  const p18=st[17]?st[17].ab:null;
+  const opp="__L2__";                          // Platzhalter: 3. der 2. Liga
+  if(ri===PO_LEG1){
+    // Hinspiel: jeweils der "niedriger gesetzte" hat Heimrecht
+    return [[p7,p6],[opp,p18]];
+  }else{
+    // Rückspiel: Heimrecht getauscht
+    return [[p6,p7],[p18,opp]];
+  }
+}
+// Name/Logo-Auflösung inkl. 2.-Liga-Platzhalter
+function teamName(ab){ if(ab==="__L2__") return poData.relOpp||"3. der 2. Liga"; return ab?T[ab].name:"—"; }
+function teamLogo(ab){ return ab && ab!=="__L2__" ? logo(ab) : ""; }
+
+/* ============================================================
+   TABELLE berechnen
+============================================================ */
+function computeStandings(){
+  const S={};
+  TEAMS.forEach(t=>S[t.ab]={ab:t.ab,pl:0,w:0,d:0,l:0,gf:0,ga:0,pts:0});
+  SCHEDULE.forEach((games,ri)=>{
+    games.forEach((g,gi)=>{
+      const res=results[`R${ri}-${gi}`];
+      if(!res||res.h===""||res.a===""||res.h==null||res.a==null) return;
+      const h=+res.h, a=+res.a, [ht,at]=g;
+      S[ht].pl++;S[at].pl++;S[ht].gf+=h;S[ht].ga+=a;S[at].gf+=a;S[at].ga+=h;
+      if(h>a){S[ht].w++;S[at].l++;S[ht].pts+=3;}
+      else if(h<a){S[at].w++;S[ht].l++;S[at].pts+=3;}
+      else{S[ht].d++;S[at].d++;S[ht].pts++;S[at].pts++;}
+    });
+  });
+  return Object.values(S).sort((x,y)=>
+    y.pts-x.pts || (y.gf-y.ga)-(x.gf-x.ga) || y.gf-x.gf || x.ab.localeCompare(y.ab)
+  );
+}
+
+function zoneClass(pos){
+  if(pos<=5) return "z-cl";
+  if(pos<=7) return "z-po";
+  if(pos===18) return "z-relplay";
+  if(pos>=19) return "z-rel";
+  return "";
+}
+
+/* ============================================================
+   SIMULATION — plausibles Ergebnis aus Team-Stärken
+   Berücksichtigt Stärke (gut/mittel/underdog) + kleinen Heimvorteil.
+   Überraschungen sind bewusst möglich.
+============================================================ */
+function poisson(lambda){
+  // Knuth-Algorithmus: zieht eine Zufalls-Torzahl um den Erwartungswert lambda
+  const L=Math.exp(-lambda); let k=0,p=1;
+  do{ k++; p*=Math.random(); }while(p>L);
+  return k-1;
+}
+function simulateMatch(homeAb,awayAb){
+  const sh=strengthOf(homeAb), sa=strengthOf(awayAb);
+  // Erwartete Tore: Basis 1.35, +Heimvorteil, + Differenz der Stärken
+  const base=1.35, homeAdv=0.35;
+  const diff=(sh-sa)*0.55;                 // 1 Stärkestufe ≈ 0.55 Tore Unterschied
+  let expH=base+homeAdv+diff;
+  let expA=base-diff;
+  // Untergrenze, damit auch Underdogs Chancen haben
+  expH=Math.max(0.45,expH);
+  expA=Math.max(0.45,expA);
+  // "Überraschungs"-Faktor: mit ~15% Wahrscheinlichkeit wird das Spiel
+  // deutlich offener (Formkurve, schlechter Tag, Sensation)
+  if(Math.random()<0.15){
+    const swing=(Math.random()*1.4)-0.4;   // kann Favorit schwächen / Underdog stärken
+    expH=Math.max(0.4,expH-swing);
+    expA=Math.max(0.4,expA+swing*0.8);
+  }
+  let hs=poisson(expH), as=poisson(expA);
+  // sehr seltene "Klatsche" begrenzen, damit es realistisch bleibt
+  hs=Math.min(hs,7); as=Math.min(as,7);
+  return [hs,as];
+}
+
+function renderStandings(){
+  const rows=computeStandings();
+  const body=document.getElementById("standingsBody");
+  body.innerHTML=rows.map((r,i)=>{
+    const pos=i+1, gd=r.gf-r.ga;
+    const gdCls=gd>0?"gd-pos":(gd<0?"gd-neg":"");
+    const gdStr=(gd>0?"+":"")+gd;
+    return `<tr class="${zoneClass(pos)}">
+      <td class="pos">${pos}</td>
+      <td>
+        <div class="team-cell">
+          <img src="${logo(r.ab)}" alt="${r.ab}" onerror="this.style.visibility='hidden'">
+          <div>
+            <div class="nm">${T[r.ab].name}</div>
+            <div class="ab">${r.ab}</div>
+          </div>
+        </div>
+      </td>
+      <td>${r.pl}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td>
+      <td>${r.gf}:${r.ga}</td>
+      <td class="${gdCls}">${gdStr}</td>
+      <td class="pts">${r.pts}</td>
+    </tr>`;
+  }).join("");
+}
+
+/* ============================================================
+   SPIELPLAN rendern
+============================================================ */
+function roundTitle(i){
+  if(i<TOTAL_ROUNDS){
+    const half=i<TOTAL_ROUNDS/2?"Hinrunde":"Rückrunde";
+    return {main:`Spieltag ${i+1}`, sub:half};
+  }else if(i===PO_LEG1){
+    return {main:"Playoffs", sub:"Hinspiel"};
+  }else{
+    return {main:"Playoffs", sub:"Rückspiel"};
+  }
+}
+function renderRoundLabel(){
+  const t=roundTitle(currentRound);
+  document.getElementById("roundLabel").innerHTML=`${t.main}<span class="rsub">${t.sub}</span>`;
+  document.getElementById("prevRound").disabled = currentRound<=0;
+  document.getElementById("nextRound").disabled = currentRound>=GRAND_TOTAL_ROUNDS-1;
+}
+
+function renderMatches(){
+  const games=getRoundGames(currentRound);
+  const el=document.getElementById("matchList");
+  const isPO=currentRound>=TOTAL_ROUNDS;
+  let head="";
+  if(isPO){
+    const leg=currentRound===PO_LEG1?"Hinspiel":"Rückspiel";
+    head=`<div class="po-banner">🏆 Playoffs · ${leg} — oben: CL-Playoff (6. vs. 7.), unten: Abstiegs-Playoff (18. vs. 3. der 2. Liga)</div>`;
+  }
+  el.innerHTML=head+games.map((g,gi)=>{
+    const [ht,at]=g, res=results[`R${currentRound}-${gi}`]||{h:"",a:""};
+    const canPlay = ht!=="__L2__" && at!=="__L2__" && ht && at; // Mini-Game nur mit echten Teams
+    const playBtn = canPlay ? `<button class="playbtn" data-home="${ht}" data-away="${at}" title="Match spielen">▶</button>` : `<span style="width:34px;flex:none"></span>`;
+    return `<div class="match">
+      <div class="side home">
+        <span class="lab">${teamName(ht)}</span>
+        ${teamLogo(ht)?`<img src="${teamLogo(ht)}" onerror="this.style.visibility='hidden'">`:`<span class="ph-logo">2L</span>`}
+      </div>
+      <div class="score">
+        <input type="number" min="0" inputmode="numeric" value="${res.h}" data-r="${currentRound}" data-g="${gi}" data-s="h" aria-label="Tore ${teamName(ht)}">
+        <span class="colon">:</span>
+        <input type="number" min="0" inputmode="numeric" value="${res.a}" data-r="${currentRound}" data-g="${gi}" data-s="a" aria-label="Tore ${teamName(at)}">
+      </div>
+      <div class="side away">
+        ${teamLogo(at)?`<img src="${teamLogo(at)}" onerror="this.style.visibility='hidden'">`:`<span class="ph-logo">2L</span>`}
+        <span class="lab">${teamName(at)}</span>
+      </div>
+      <button class="simbtn" data-home="${ht}" data-away="${at}" data-g="${gi}" title="Ergebnis simulieren">⚄</button>
+      ${playBtn}
+    </div>`;
+  }).join("");
+
+  el.querySelectorAll("input").forEach(inp=>{
+    inp.addEventListener("input",e=>{
+      const {r,g,s}=e.target.dataset, key=`R${r}-${g}`;
+      if(!results[key]) results[key]={h:"",a:""};
+      results[key][s]=e.target.value===""?"":Math.max(0,+e.target.value);
+      save(LS.results,results);
+      renderStandings();
+      renderScorers();
+    });
+  });
+  el.querySelectorAll(".playbtn").forEach(b=>{
+    b.addEventListener("click",()=>openGame(b.dataset.home,b.dataset.away,{r:currentRound}));
+  });
+  el.querySelectorAll(".simbtn").forEach(b=>{
+    b.addEventListener("click",()=>{
+      const {home,away,g}=b.dataset;
+      const [hs,as]=simulateMatch(home,away);
+      results[`R${currentRound}-${g}`]={h:hs,a:as};
+      save(LS.results,results);
+      renderStandings();
+      renderScorers();
+      renderMatches();
+    });
+  });
+}
+
+function gotoRound(i){
+  currentRound=Math.max(0,Math.min(GRAND_TOTAL_ROUNDS-1,i));
+  renderRoundLabel();
+  renderMatches();
+}
+
+/* ============================================================
+   PLAYOFFS
+============================================================ */
+function twoLegAggregate(leg1,leg2,teamTop,teamBot){
+  // leg1: top zuhause, leg2: bot zuhause
+  const g1t=+leg1.top||0,g1b=+leg1.bot||0,g2b=+leg2.bot||0,g2t=+leg2.top||0;
+  const complete = leg1.top!==""&&leg1.bot!==""&&leg2.top!==""&&leg2.bot!==""
+                 &&leg1.top!=null&&leg1.bot!=null&&leg2.top!=null&&leg2.bot!=null;
+  const aggTop=g1t+g2t, aggBot=g1b+g2b;
+  let winner=null;
+  if(complete){
+    if(aggTop>aggBot) winner=teamTop;
+    else if(aggBot>aggTop) winner=teamBot;
+    else winner="draw"; // Unentschieden -> hier bewusst offen (Elfmeter etc.)
+  }
+  return {aggTop,aggBot,complete,winner};
+}
+
+function poLegRow(tag,homeAb,awayAb,homeName,awayName,val,onChange){
+  const wrap=document.createElement("div");
+  wrap.className="leg-row";
+  const homeImg = homeAb?`<img src="${logo(homeAb)}" style="width:24px;height:24px;object-fit:contain" onerror="this.style.visibility='hidden'">`:"";
+  const awayImg = awayAb?`<img src="${logo(awayAb)}" style="width:24px;height:24px;object-fit:contain" onerror="this.style.visibility='hidden'">`:"";
+  wrap.innerHTML=`
+    <span class="leg-tag">${tag}</span>
+    <div class="match" style="flex:1;padding:0;border:none">
+      <div class="side home">${homeName?`<span class="lab" style="display:inline">${homeName}</span>`:""}${homeImg}</div>
+      <div class="score">
+        <input type="number" min="0" inputmode="numeric" value="${val.home}" data-side="home">
+        <span class="colon">:</span>
+        <input type="number" min="0" inputmode="numeric" value="${val.away}" data-side="away">
+      </div>
+      <div class="side away">${awayImg}${awayName?`<span class="lab" style="display:inline">${awayName}</span>`:""}</div>
+    </div>`;
+  wrap.querySelectorAll("input").forEach(inp=>{
+    inp.addEventListener("input",()=>{
+      const home=wrap.querySelector('[data-side="home"]').value;
+      const away=wrap.querySelector('[data-side="away"]').value;
+      onChange({home:home===""?"":Math.max(0,+home),away:away===""?"":Math.max(0,+away)});
+    });
+  });
+  return wrap;
+}
+
+function renderCLPlayoff(){
+  const standings=computeStandings();
+  const p6=standings[5], p7=standings[6];
+  const box=document.getElementById("clPlayoff");
+  box.innerHTML="";
+  if(!poData.cl) poData.cl={};
+  const d=poData.cl;
+  ["l1h","l1a","l2h","l2a"].forEach(k=>{ if(d[k]==null)d[k]=""; });
+
+  const t6=p6?p6.ab:null, t7=p7?p7.ab:null;
+  const n6=p6?T[p6.ab].name:"6. Platz", n7=p7?T[p7.ab].name:"7. Platz";
+
+  // Hinspiel: 7. zuhause, Rückspiel: 6. zuhause (Top=6.)
+  box.appendChild(poLegRow("Hinspiel", t7,t6, n7,n6,
+    {home:d.l1a, away:d.l1h}, v=>{ d.l1a=v.home; d.l1h=v.away; save(LS.po,poData); updateCLAgg(); }));
+  box.appendChild(poLegRow("Rückspiel", t6,t7, n6,n7,
+    {home:d.l2h, away:d.l2a}, v=>{ d.l2h=v.home; d.l2a=v.away; save(LS.po,poData); updateCLAgg(); }));
+
+  const agg=document.createElement("div");
+  agg.className="agg";agg.id="clAgg";
+  box.appendChild(agg);
+  updateCLAgg();
+
+  function updateCLAgg(){
+    const leg1={top:d.l1h,bot:d.l1a}, leg2={top:d.l2h,bot:d.l2a};
+    const r=twoLegAggregate(leg1,leg2,n6,n7);
+    const el=document.getElementById("clAgg");
+    if(!r.complete){ el.innerHTML=`Gesamt: <strong>${r.aggTop}:${r.aggBot}</strong> — Ergebnisse eintragen für den Sieger.`; return; }
+    if(r.winner==="draw"){ el.innerHTML=`Gesamt <strong>${r.aggTop}:${r.aggBot}</strong> — Unentschieden, Entscheidung im Elfmeterschiessen.`; return; }
+    el.innerHTML=`Gesamt <strong>${r.aggTop}:${r.aggBot}</strong> — <strong>${r.winner}</strong> zieht in die Champions League ein. 🏆`;
+  }
+}
+
+function renderRelPlayoff(){
+  const standings=computeStandings();
+  const p18=standings[17];
+  const box=document.getElementById("relPlayoff");
+  box.innerHTML="";
+  if(!poData.rel) poData.rel={};
+  const d=poData.rel;
+  ["l1h","l1a","l2h","l2a"].forEach(k=>{ if(d[k]==null)d[k]=""; });
+
+  const oppInput=document.getElementById("relOpponent");
+  oppInput.value=poData.relOpp||"";
+  const oppName=poData.relOpp||"3. der 2. Liga";
+
+  const t18=p18?p18.ab:null;
+  const n18=p18?T[p18.ab].name:"18. Platz";
+
+  // Hinspiel: 2.-Liga-Team zuhause, Rückspiel: FLL-18. zuhause (Top=18.)
+  box.appendChild(poLegRow("Hinspiel", null,t18, oppName,n18,
+    {home:d.l1a, away:d.l1h}, v=>{ d.l1a=v.home; d.l1h=v.away; save(LS.po,poData); updateRelAgg(); }));
+  box.appendChild(poLegRow("Rückspiel", t18,null, n18,oppName,
+    {home:d.l2h, away:d.l2a}, v=>{ d.l2h=v.home; d.l2a=v.away; save(LS.po,poData); updateRelAgg(); }));
+
+  const agg=document.createElement("div");
+  agg.className="agg";agg.id="relAgg";
+  box.appendChild(agg);
+  updateRelAgg();
+
+  function updateRelAgg(){
+    const leg1={top:d.l1h,bot:d.l1a}, leg2={top:d.l2h,bot:d.l2a};
+    const r=twoLegAggregate(leg1,leg2,n18,oppName);
+    const el=document.getElementById("relAgg");
+    if(!r.complete){ el.innerHTML=`Gesamt: <strong>${r.aggTop}:${r.aggBot}</strong> — Ergebnisse eintragen.`; return; }
+    if(r.winner==="draw"){ el.innerHTML=`Gesamt <strong>${r.aggTop}:${r.aggBot}</strong> — Unentschieden, Entscheidung im Elfmeterschiessen.`; return; }
+    if(r.winner===n18) el.innerHTML=`Gesamt <strong>${r.aggTop}:${r.aggBot}</strong> — <strong>${n18}</strong> bleibt in der FLL. ✅`;
+    else el.innerHTML=`Gesamt <strong>${r.aggTop}:${r.aggBot}</strong> — <strong>${oppName}</strong> steigt auf, <strong>${n18}</strong> ab. ⬇️`;
+  }
+}
+document.getElementById("relOpponent").addEventListener("input",e=>{
+  poData.relOpp=e.target.value; save(LS.po,poData); renderRelPlayoff();
+});
+
+/* ============================================================
+   TORSCHÜTZEN — automatisch aus allen Ergebnissen (Liga + Playoffs)
+   Tore werden pro Spiel deterministisch auf die 3 Kaderspieler
+   des jeweiligen Teams verteilt. Manuelle Eingabe entfällt.
+============================================================ */
+function computeScorers(){
+  const tally={};  // "team|name" -> {name,num,team,goals}
+  const add=list=>list.forEach(s=>{
+    const k=s.team+"|"+s.name;
+    if(!tally[k]) tally[k]={name:s.name,num:s.num,team:s.team,goals:0};
+    tally[k].goals+=s.goals;
+  });
+  for(let ri=0; ri<GRAND_TOTAL_ROUNDS; ri++){
+    const games=getRoundGames(ri);
+    games.forEach((g,gi)=>{
+      const res=results[`R${ri}-${gi}`];
+      if(!res||res.h===""||res.a===""||res.h==null||res.a==null) return;
+      const [ht,at]=g, h=+res.h, a=+res.a;
+      // __L2__ hat keinen Kader -> dessen Tore fliessen nicht in die Liste
+      if(ht && ht!=="__L2__") add(assignGoals(ht,h,`R${ri}-${gi}-H-${h}`));
+      if(at && at!=="__L2__") add(assignGoals(at,a,`R${ri}-${gi}-A-${a}`));
+    });
+  }
+  return Object.values(tally).sort((x,y)=>
+    y.goals-x.goals || x.name.localeCompare(y.name)
+  );
+}
+
+function renderScorers(){
+  const el=document.getElementById("scorerList");
+  const list=computeScorers();
+  if(list.length===0){
+    el.innerHTML=`<div class="empty"><div class="big">⚽</div>Noch keine Tore. Spiele oder simuliere Partien im Spielplan — die Torschützen erscheinen automatisch.</div>`;
+    return;
+  }
+  el.innerHTML=list.map((s,i)=>`
+    <div class="scorer-row">
+      <div class="scorer-rank ${i===0?'top':''}">${i+1}</div>
+      <div class="scorer-info">
+        <div class="pn">${s.name} <span class="pnum">#${s.num}</span></div>
+        <div class="pt"><img src="${logo(s.team)}" onerror="this.style.display='none'">${T[s.team]?T[s.team].name:s.team}</div>
+      </div>
+      <div class="goals-badge">${s.goals}<span class="g">Tore</span></div>
+    </div>`).join("");
+}
+
+/* ============================================================
+   TABS + Navigation
+============================================================ */
+document.getElementById("tabs").addEventListener("click",e=>{
+  const btn=e.target.closest("button"); if(!btn) return;
+  document.querySelectorAll("#tabs button").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("show"));
+  document.getElementById("tab-"+btn.dataset.tab).classList.add("show");
+  if(btn.dataset.tab==="table") renderStandings();
+  if(btn.dataset.tab==="scorers") renderScorers();
+  if(btn.dataset.tab==="playoffs"){ renderCLPlayoff(); renderRelPlayoff(); }
+});
+document.getElementById("prevRound").addEventListener("click",()=>gotoRound(currentRound-1));
+document.getElementById("nextRound").addEventListener("click",()=>gotoRound(currentRound+1));
+document.getElementById("simRound").addEventListener("click",()=>{
+  const games=getRoundGames(currentRound);
+  games.forEach((g,gi)=>{
+    const [hs,as]=simulateMatch(g[0],g[1]);
+    results[`R${currentRound}-${gi}`]={h:hs,a:as};
+  });
+  save(LS.results,results);
+  renderStandings();
+  renderScorers();
+  renderMatches();
+});
+document.getElementById("resetResults").addEventListener("click",()=>{
+  if(confirm("Alle eingetragenen Ergebnisse löschen? Die Torschützenliste wird ebenfalls zurückgesetzt.")){
+    results={}; save(LS.results,results); renderStandings(); renderScorers(); renderMatches();
+  }
+});
+
+/* ============================================================
+   MINI-GAME (Club-Legend-Stil, Top-Down)
+============================================================ */
+const Game = (()=>{
+  const overlay=document.getElementById("gameOverlay");
+  const canvas=document.getElementById("pitch");
+  const ctx=canvas.getContext("2d");
+  const W=canvas.width, H=canvas.height;
+
+  // Spielfeld-Ränder
+  const M=24;                        // Rand
+  const goalW=140;                   // Torbreite
+  let R;                             // Radius Spieler (skaliert)
+  let state=null, raf=null;
+
+  const TEAM_COLORS={
+    // fallback-farben pro team (Trikot)
+    FLC:"#1b3a7a", VAT:"#e23b3b", BLC:"#f2c230", SPF:"#e23b3b", FFS:"#8a94a6",
+    NMC:"#37a9ff", GSF:"#c0392b", RBB:"#e23b3b", KEY:"#3a3a3a",
+    SOU:"#2f6f5e", NOR:"#1450c8", WTU:"#2f6b34", UVAT:"#1450c8", MID:"#1b3a7a",
+    LNI:"#1450c8", PLT:"#22315a", NHT:"#e2213b", FHV:"#222", FST:"#e8792a", FCC:"#e8792a"
+  };
+  const colorFor=ab=>TEAM_COLORS[ab]||"#1b3a7a";
+
+  function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
+
+  function mkPlayers(ab,side){
+    // side: "top" (verteidigt oben) oder "bottom" (verteidigt unten, = Spieler)
+    const roster=ROSTERS[ab]||[["Player 1",9],["Player 2",10],["Player 3",7]];
+    const ys = side==="bottom" ? [H*0.62,H*0.78,H*0.90] : [H*0.38,H*0.22,H*0.10];
+    const xs = [W*0.5, W*0.3, W*0.7];
+    return roster.slice(0,3).map((p,i)=>({
+      name:p[0], num:p[1], x:xs[i], y:ys[i],
+      hx:xs[i], hy:ys[i],          // Home-Position
+      side, ab, idx:i
+    }));
+  }
+
+  function reset(){
+    state.homeScore=0; state.awayScore=0;
+    state.time=90;                 // Sekunden Spielzeit
+    state.msg="";
+    resetPositions();
+    document.getElementById("gameMsg").classList.remove("show");
+    updateScore();
+  }
+  function resetPositions(){
+    state.players.forEach(p=>{p.x=p.hx;p.y=p.hy;});
+    state.ball={x:W/2,y:H/2,vx:0,vy:0};
+    state.active=state.players.find(p=>p.side==="bottom");
+  }
+
+  function updateScore(){
+    document.getElementById("ghScore").textContent=`${state.homeScore} : ${state.awayScore}`;
+  }
+
+  // Schritt 1: Team-Auswahl anzeigen. fixtureHome/fixtureAway = echte Heim/Auswärts-Zuordnung.
+  function open(fixtureHome,fixtureAway,meta){
+    if(raf) cancelAnimationFrame(raf);
+    state={fixtureHome,fixtureAway,meta};   // vorläufig, bis Team gewählt
+    const modal=overlay.querySelector(".game-modal");
+    modal.classList.add("choosing");
+    // Auswahlkarten bauen
+    const opts=document.getElementById("tsOptions");
+    const card=(ab,role)=>`
+      <button class="ts-card" data-ab="${ab}">
+        ${logo(ab)?`<img src="${logo(ab)}" onerror="this.style.display='none'">`:`<span class="ts-ph">2L</span>`}
+        <span class="ts-name">${teamName(ab)}</span>
+        <span class="ts-role">${role}</span>
+      </button>`;
+    opts.innerHTML = card(fixtureHome,"Heim") + `<span class="ts-vs">vs</span>` + card(fixtureAway,"Auswärts");
+    opts.querySelectorAll(".ts-card").forEach(btn=>{
+      btn.addEventListener("click",()=>startMatch(btn.dataset.ab));
+    });
+    overlay.classList.add("show");
+  }
+
+  // Schritt 2: Spiel mit gewähltem Team starten (gesteuertes Team steht unten).
+  function startMatch(controlledAb){
+    const {fixtureHome,fixtureAway,meta}=state;
+    const opponentAb = controlledAb===fixtureHome ? fixtureAway : fixtureHome;
+    overlay.querySelector(".game-modal").classList.remove("choosing");
+
+    const s=strengthOf(opponentAb);
+    const aiSkill = s===3 ? 0.55 : s===2 ? 0.40 : 0.28;
+    state={
+      fixtureHome, fixtureAway, meta, aiSkill,
+      controlledAb, opponentAb,
+      // Ist das gesteuerte Team im Fixture das Heimteam? -> für korrektes Zurückmappen
+      controlledIsFixtureHome: controlledAb===fixtureHome,
+      players:[...mkPlayers(controlledAb,"bottom"),...mkPlayers(opponentAb,"top")],
+      ball:null, active:null, homeScore:0, awayScore:0, time:90, running:false, drag:null
+    };
+    // Header: unten (links) = gesteuertes Team, oben (rechts) = Gegner
+    document.getElementById("ghHome").innerHTML=`${teamLogo(controlledAb)?`<img src="${teamLogo(controlledAb)}" onerror="this.style.display='none'">`:""}${teamName(controlledAb)} <span style="font-size:10px;color:var(--blue);font-weight:800;margin-left:2px">DU</span>`;
+    document.getElementById("ghAway").innerHTML=`${teamName(opponentAb)}${teamLogo(opponentAb)?`<img src="${teamLogo(opponentAb)}" onerror="this.style.display='none'">`:""}`;
+    reset();
+    overlay.classList.add("show");
+    state.running=true;
+    lastT=performance.now();
+    loop();
+  }
+
+  function close(){
+    overlay.classList.remove("show");
+    overlay.querySelector(".game-modal").classList.remove("choosing");
+    if(state) state.running=false;
+    state=null;
+    if(raf) cancelAnimationFrame(raf);
+  }
+
+  let lastT=0, acc=0;
+  function loop(){
+    if(!state||!state.running){return;}
+    const now=performance.now();
+    let dt=(now-lastT)/1000; lastT=now;
+    if(dt>0.05) dt=0.05;
+    step(dt);
+    draw();
+    // Timer
+    acc+=dt;
+    if(acc>=1){ acc-=1; state.time=Math.max(0,state.time-1);
+      document.getElementById("gameTimer").textContent=fmtTime(state.time);
+      if(state.time<=0){ endGame(); return; }
+    }
+    raf=requestAnimationFrame(loop);
+  }
+  function fmtTime(s){const m=Math.floor(s/60);const r=s%60;return `${m}:${r<10?"0":""}${r}`;}
+
+  function endGame(){
+    state.running=false;
+    const msg=document.getElementById("gameMsg");
+    let res = state.homeScore>state.awayScore?`${teamName(state.controlledAb)} gewinnt!`
+            : state.homeScore<state.awayScore?`${teamName(state.opponentAb)} gewinnt!`
+            : "Unentschieden!";
+    msg.textContent=`Abpfiff — ${state.homeScore}:${state.awayScore} · ${res}`;
+    msg.classList.add("show");
+  }
+
+  function step(dt){
+    const b=state.ball;
+    // Ballbewegung + Reibung
+    b.x+=b.vx*dt; b.y+=b.vy*dt;
+    b.vx*=0.985; b.vy*=0.985;
+    if(Math.abs(b.vx)<2)b.vx=0; if(Math.abs(b.vy)<2)b.vy=0;
+
+    // Wände (Seiten)
+    if(b.x<M+6){b.x=M+6;b.vx*=-0.6;}
+    if(b.x>W-M-6){b.x=W-M-6;b.vx*=-0.6;}
+
+    // Tore prüfen (oben = Gegnertor -> Heim-Tor; unten = Heimtor -> Gegner-Tor)
+    const goalX0=(W-goalW)/2, goalX1=(W+goalW)/2;
+    if(b.y<M+2){
+      if(b.x>goalX0&&b.x<goalX1){ goal("home"); return; }
+      b.y=M+2;b.vy*=-0.6;
+    }
+    if(b.y>H-M-2){
+      if(b.x>goalX0&&b.x<goalX1){ goal("away"); return; }
+      b.y=H-M-2;b.vy*=-0.6;
+    }
+
+    // KI: Gegner (top) und Heim-Mitspieler bewegen sich Richtung Ball / Position
+    const ai=state.aiSkill;                 // 0.28..0.55
+    const topSpeed = 55 + ai*70;            // ~74 (underdog) .. ~93 (gut) — langsamer als Spieler (160)
+    state.players.forEach(p=>{
+      if(p===state.active) return;
+      let target;
+      if(p.side==="top"){
+        // Gegner: nur der nächste zum Ball jagt — und auch nur, wenn der Ball
+        // auf der oberen Hälfte ist. Sonst hält er lose Position (träger, leichter zu umspielen).
+        const chaser = nearestToBall("top")===p;
+        const ballOben = b.y < H*0.55;
+        if(chaser && ballOben){
+          target = {x:b.x, y:b.y};
+        }else{
+          target = {x:(p.hx+b.x*0.4)/1.4, y:(p.hy+b.y*0.25)};
+        }
+      }else{
+        // Heim-Mitspieler: halten Position, bieten sich an
+        target = {x:(p.hx*2+b.x)/3, y:(p.hy*2+b.y)/3};
+      }
+      moveTo(p,target,p.side==="top"?topSpeed:70,dt);
+    });
+
+    // Aktiver Spieler bewegt sich zum Drag-Ziel
+    if(state.active && state.target){
+      moveTo(state.active,state.target,160,dt);
+    }
+
+    // Spieler-Ball-Kollision (dribbeln/schiessen)
+    state.players.forEach(p=>{
+      const d=distToBall(p);
+      if(d<R+8){
+        const ang=Math.atan2(b.y-p.y,b.x-p.x);
+        if(p===state.active){
+          // Kick in Bewegungsrichtung des aktiven Spielers
+          const spd=Math.hypot(p.vx||0,p.vy||0);
+          const power=Math.max(240, spd*4);
+          b.vx=Math.cos(ang)*power; b.vy=Math.sin(ang)*power;
+        }else if(p.side==="top"){
+          // Gegner schiesst Richtung unteres Tor — Kraft & Genauigkeit skalieren mit aiSkill.
+          // Bei schwachen Teams oft zu kurz/zu ungenau, manchmal nur ein Klärungsschlag.
+          const ai=state.aiSkill;
+          const targetX = (W/2) + (Math.random()*2-1)*(1-ai)*220;  // ungenauer bei kleinem ai
+          const ta=Math.atan2((H-M)-p.y, targetX-p.x);
+          const power = 150 + ai*140;                              // ~189 .. ~227
+          const wild = Math.random() > (0.5+ai*0.4);               // Fehlschlag/zu schwach
+          const pw = wild ? power*0.55 : power;
+          b.vx=Math.cos(ta)*pw + (Math.random()*40-20);
+          b.vy=Math.sin(ta)*pw;
+        }else{
+          b.vx=Math.cos(ang)*180; b.vy=Math.sin(ang)*180;
+        }
+      }
+    });
+
+    // Spieler-Spieler leichte Trennung
+    for(let i=0;i<state.players.length;i++)for(let j=i+1;j<state.players.length;j++){
+      const a=state.players[i],c=state.players[j],d=dist(a,c);
+      if(d<R*2&&d>0){const o=(R*2-d)/2,ang=Math.atan2(c.y-a.y,c.x-a.x);
+        a.x-=Math.cos(ang)*o;a.y-=Math.sin(ang)*o;c.x+=Math.cos(ang)*o;c.y+=Math.sin(ang)*o;}
+    }
+    // In Feld halten
+    state.players.forEach(p=>{
+      p.x=Math.max(M+R,Math.min(W-M-R,p.x));
+      p.y=Math.max(M+R,Math.min(H-M-R,p.y));
+    });
+  }
+
+  function distToBall(p){return Math.hypot(p.x-state.ball.x,p.y-state.ball.y);}
+  function nearestToBall(side){
+    let best=null,bd=1e9;
+    state.players.filter(p=>p.side===side).forEach(p=>{const d=distToBall(p);if(d<bd){bd=d;best=p;}});
+    return best;
+  }
+  function moveTo(p,target,speed,dt){
+    const ang=Math.atan2(target.y-p.y,target.x-p.x);
+    const d=Math.hypot(target.x-p.x,target.y-p.y);
+    if(d<2){p.vx=0;p.vy=0;return;}
+    const s=Math.min(speed,d/dt);
+    p.vx=Math.cos(ang)*s; p.vy=Math.sin(ang)*s;
+    p.x+=p.vx*dt; p.y+=p.vy*dt;
+  }
+
+  function goal(who){
+    if(who==="home") state.homeScore++; else state.awayScore++;
+    updateScore();
+    const msg=document.getElementById("gameMsg");
+    msg.textContent="⚽ TOR!";
+    msg.classList.add("show");
+    setTimeout(()=>{ if(state&&state.running) msg.classList.remove("show"); },900);
+    resetPositions();
+  }
+
+  /* ---- Zeichnen ---- */
+  function draw(){
+    // Rasen
+    ctx.fillStyle="#0d7a3a"; ctx.fillRect(0,0,W,H);
+    // Rasenstreifen
+    ctx.fillStyle="rgba(255,255,255,0.03)";
+    for(let i=0;i<8;i++){ if(i%2===0) ctx.fillRect(0,i*(H/8),W,H/8); }
+    // Linien
+    ctx.strokeStyle="rgba(255,255,255,0.75)"; ctx.lineWidth=2;
+    ctx.strokeRect(M,M,W-2*M,H-2*M);
+    // Mittellinie + Kreis
+    ctx.beginPath();ctx.moveTo(M,H/2);ctx.lineTo(W-M,H/2);ctx.stroke();
+    ctx.beginPath();ctx.arc(W/2,H/2,52,0,Math.PI*2);ctx.stroke();
+    ctx.beginPath();ctx.arc(W/2,H/2,3,0,Math.PI*2);ctx.fillStyle="rgba(255,255,255,.75)";ctx.fill();
+    // Tore
+    const gx0=(W-goalW)/2, gx1=(W+goalW)/2;
+    ctx.lineWidth=5;ctx.strokeStyle="#fff";
+    ctx.beginPath();ctx.moveTo(gx0,M);ctx.lineTo(gx1,M);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(gx0,H-M);ctx.lineTo(gx1,H-M);ctx.stroke();
+    // Strafräume
+    ctx.lineWidth=2;ctx.strokeStyle="rgba(255,255,255,0.55)";
+    ctx.strokeRect((W-goalW-70)/2,M,goalW+70,70);
+    ctx.strokeRect((W-goalW-70)/2,H-M-70,goalW+70,70);
+
+    // Ball
+    const b=state.ball;
+    ctx.beginPath();ctx.arc(b.x,b.y,7,0,Math.PI*2);
+    ctx.fillStyle="#fff";ctx.fill();
+    ctx.lineWidth=1;ctx.strokeStyle="#333";ctx.stroke();
+    ctx.beginPath();ctx.arc(b.x,b.y,2.5,0,Math.PI*2);ctx.fillStyle="#333";ctx.fill();
+
+    // Spieler
+    state.players.forEach(p=>drawPlayer(p));
+  }
+
+  function drawPlayer(p){
+    const isActive=p===state.active;
+    const col=colorFor(p.ab);
+    // Aktiv-Ring
+    if(isActive){
+      ctx.beginPath();ctx.arc(p.x,p.y,R+5,0,Math.PI*2);
+      ctx.strokeStyle="#ffe14d";ctx.lineWidth=3;ctx.stroke();
+    }
+    // Körper
+    ctx.beginPath();ctx.arc(p.x,p.y,R,0,Math.PI*2);
+    ctx.fillStyle=col;ctx.fill();
+    ctx.lineWidth=2.5;ctx.strokeStyle="#fff";ctx.stroke();
+    // Nummer
+    ctx.fillStyle=lum(col)>0.6?"#111":"#fff";
+    ctx.font="bold 14px -apple-system,Helvetica,Arial";
+    ctx.textAlign="center";ctx.textBaseline="middle";
+    ctx.fillText(p.num,p.x,p.y+0.5);
+    // Name darunter
+    ctx.font="600 10px -apple-system,Helvetica,Arial";
+    ctx.fillStyle="#fff";
+    ctx.strokeStyle="rgba(0,0,0,.55)";ctx.lineWidth=3;
+    ctx.strokeText(p.name,p.x,p.y+R+9);
+    ctx.fillText(p.name,p.x,p.y+R+9);
+  }
+  function lum(hex){
+    const c=hex.replace("#","");if(c.length<6)return 0.5;
+    const r=parseInt(c.slice(0,2),16)/255,g=parseInt(c.slice(2,4),16)/255,b=parseInt(c.slice(4,6),16)/255;
+    return 0.2126*r+0.7152*g+0.0722*b;
+  }
+
+  /* ---- Eingabe (Maus/Touch) ---- */
+  function canvasPos(e){
+    const r=canvas.getBoundingClientRect();
+    const cx=(e.touches?e.touches[0].clientX:e.clientX)-r.left;
+    const cy=(e.touches?e.touches[0].clientY:e.clientY)-r.top;
+    return {x:cx*(W/r.width), y:cy*(H/r.height)};
+  }
+  function onDown(e){
+    if(!state||!state.running)return;
+    e.preventDefault();
+    const pos=canvasPos(e);
+    // nächsten Heim-Spieler auswählen
+    let best=null,bd=1e9;
+    state.players.filter(p=>p.side==="bottom").forEach(p=>{
+      const d=Math.hypot(p.x-pos.x,p.y-pos.y); if(d<bd){bd=d;best=p;}
+    });
+    if(best){ state.active=best; }
+    state.target=pos; state.dragging=true;
+  }
+  function onMove(e){
+    if(!state||!state.dragging)return;
+    e.preventDefault();
+    state.target=canvasPos(e);
+  }
+  function onUp(){ if(state){state.dragging=false; state.target=null;} }
+
+  canvas.addEventListener("mousedown",onDown);
+  canvas.addEventListener("mousemove",onMove);
+  window.addEventListener("mouseup",onUp);
+  canvas.addEventListener("touchstart",onDown,{passive:false});
+  canvas.addEventListener("touchmove",onMove,{passive:false});
+  window.addEventListener("touchend",onUp);
+
+  // Responsiv: R aus Höhe ableiten
+  R=15;
+
+  // Buttons
+  document.getElementById("gameClose").addEventListener("click",close);
+  document.getElementById("selClose").addEventListener("click",close);
+  overlay.addEventListener("click",e=>{ if(e.target===overlay) close(); });
+  document.getElementById("gameReplay").addEventListener("click",()=>{
+    if(!state||!state.controlledAb)return; reset(); state.running=true; lastT=performance.now(); loop();
+  });
+  document.getElementById("gameApply").addEventListener("click",()=>{
+    if(!state||!state.controlledAb)return;
+    // homeScore = Tore des gesteuerten Teams, awayScore = Gegner.
+    // Zurück auf die echte Heim/Auswärts-Zuordnung des Spielplans mappen:
+    let fhGoals, faGoals;
+    if(state.controlledIsFixtureHome){ fhGoals=state.homeScore; faGoals=state.awayScore; }
+    else{ fhGoals=state.awayScore; faGoals=state.homeScore; }
+    applyResult(state.fixtureHome,state.fixtureAway,fhGoals,faGoals,state.meta);
+    close();
+  });
+
+  return {open,close};
+})();
+
+function openGame(home,away,meta){ Game.open(home,away,meta); }
+
+// Ergebnis aus dem Spiel in Tabelle/Spielplan übernehmen
+function applyResult(homeAb,awayAb,hs,as,meta){
+  // finde das passende Match im (auch Playoff-)Spieltag
+  const games=getRoundGames(meta.r);
+  const gi=games.findIndex(g=>g[0]===homeAb&&g[1]===awayAb);
+  if(gi<0) return;
+  results[`R${meta.r}-${gi}`]={h:hs,a:as};
+  save(LS.results,results);
+  renderStandings();
+  renderScorers();
+  renderMatches();
+}
+
+/* ============================================================
+   INIT
+============================================================ */
+renderStandings();
+renderRoundLabel();
+renderMatches();
+renderScorers();
+</script>
+</body>
+</html>
